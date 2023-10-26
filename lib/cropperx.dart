@@ -5,6 +5,18 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
+class CropResult {
+  final Uint8List data;
+  final int? width;
+  final int? height;
+
+  const CropResult(
+    this.data, {
+    this.width,
+    this.height,
+  });
+}
+
 class Cropper extends StatefulWidget {
   /// The cropper's key to reference when calling the crop function.
   final GlobalKey? cropperKey;
@@ -27,7 +39,7 @@ class Cropper extends StatefulWidget {
 
   /// The minimum scale the user is able to zoom. Defaults to 0.1
   final double minZoomScale;
-  
+
   /// The aspect ratio to crop the image to. Defaults to a square (an aspect ratio of 1.0)
   final double aspectRatio;
 
@@ -71,7 +83,7 @@ class Cropper extends StatefulWidget {
 
   /// Crops the image as displayed in the cropper widget, converts it to PNG format and returns it
   /// as [Uint8List]. The cropper widget should be referenced using its key.
-  static Future<Uint8List?> crop({
+  static Future<CropResult?> crop({
     required GlobalKey cropperKey,
     double pixelRatio = 3,
   }) async {
@@ -86,7 +98,15 @@ class Cropper extends StatefulWidget {
     );
     final pngBytes = byteData?.buffer.asUint8List();
 
-    return pngBytes;
+    if (pngBytes != null) {
+      return CropResult(
+        pngBytes,
+        width: image.width,
+        height: image.height,
+      );
+    } else {
+      return null;
+    }
   }
 }
 

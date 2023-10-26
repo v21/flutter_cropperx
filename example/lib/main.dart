@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:cropperx/cropperx.dart';
 import 'package:flutter/foundation.dart';

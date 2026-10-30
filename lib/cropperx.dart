@@ -130,12 +130,28 @@ class _CropperState extends State<Cropper> {
   late final _imageStreamListener = ImageStreamListener(
     (_, __) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         setState(() {
           _shouldSetInitialScale = true;
         });
       });
     },
   );
+
+  /// The stream [_imageStreamListener] is on, so it can be removed when the image changes or the
+  /// cropper goes.
+  ImageStream? _imageStream;
+
+  void _listenTo(ImageStream stream) {
+    if (stream.key == _imageStream?.key) return;
+    _imageStream?.removeListener(_imageStreamListener);
+    _imageStream = stream..addListener(_imageStreamListener);
+  }
+
+  void _stopListening() {
+    _imageStream?.removeListener(_imageStreamListener);
+    _imageStream = null;
+  }
 
   @override
   void initState() {
@@ -175,12 +191,12 @@ class _CropperState extends State<Cropper> {
                             _imageConfiguration,
                           );
                           if (_hasImageUpdated && _shouldSetInitialScale) {
-                            imageStream.removeListener(_imageStreamListener);
+                            _stopListening();
                             _setInitialScale(context, constraint.biggest);
                           }
 
                           if (_hasImageUpdated && !_shouldSetInitialScale) {
-                            imageStream.addListener(_imageStreamListener);
+                            _listenTo(imageStream);
                           }
 
                           if (_shouldUpdateScale) {
@@ -295,6 +311,7 @@ class _CropperState extends State<Cropper> {
 
   @override
   void dispose() {
+    _stopListening();
     _transformationController.dispose();
     super.dispose();
   }
